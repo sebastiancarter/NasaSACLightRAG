@@ -11,7 +11,7 @@ from scrapeText import getTextAndTitles
 from dotenv import load_dotenv
 # ALWAYS RUN THIS FROM SERVER, NOT FROM THE NASCASACLightRAG DIR
 load_dotenv(dotenv_path=".env", override=False)
-WORKING_DIR = "./nasaRagSmall"
+WORKING_DIR = "./nasaRag"
 
 
 def configure_logging():
@@ -90,15 +90,15 @@ async def initialize_rag():
         max_parallel_insert=8,
         llm_model_kwargs={
             "host": os.getenv("LLM_BINDING_HOST", "http://localhost:11434"),
-            "options": {"num_ctx": 8192},
+            "options": {"num_ctx": 10000},
             "timeout": int(os.getenv("TIMEOUT", "600")),
         },
         embedding_func=EmbeddingFunc(
-            embedding_dim=int(os.getenv("EMBEDDING_DIM", "384")),
+            embedding_dim=int(os.getenv("EMBEDDING_DIM", "768")),
             max_token_size=int(os.getenv("MAX_EMBED_TOKENS", "8192")),
             func=lambda texts: ollama_embed(
                 texts,
-                embed_model=os.getenv("EMBEDDING_MODEL", "qllama/bge-small-en-v1.5:latest"),
+                embed_model=os.getenv("EMBEDDING_MODEL", "nomic-embed-text:latest"),
                 host=os.getenv("EMBEDDING_BINDING_HOST", "http://localhost:11434"),
             ),
         ),
@@ -159,11 +159,11 @@ class lightRag:
         try:
             # Perform hybrid search
             print("\n=====================")
-            print("Query mode: hybrid")
+            print("Query mode: mix")
             print("=====================")
             resp = await self.rag.aquery(
                 chatMessage,
-                param=QueryParam(mode="hybrid", stream=False),
+                param=QueryParam(mode="mix", stream=False, only_need_context=False, only_need_prompt=True, enable_rerank=False),
             )
             if inspect.isasyncgen(resp):
                 await print_stream(resp)
@@ -185,8 +185,8 @@ async def print_stream(stream):
 async def main():
     lightRagInstance = lightRag()
     await lightRagInstance.setupRag()
-    await lightRagInstance.populateRag()
-    return await lightRagInstance.chat("What are the key challenges in Mars exploration?")
+    #await lightRagInstance.populateRag()
+    return await lightRagInstance.chat("summarise research on growing plants in space and the struggles associated")
 
 
 
