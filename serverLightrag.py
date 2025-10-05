@@ -7,11 +7,11 @@ from lightrag import LightRAG, QueryParam
 from lightrag.llm.ollama import ollama_model_complete, ollama_embed
 from lightrag.utils import EmbeddingFunc, logger, set_verbose_debug
 from lightrag.kg.shared_storage import initialize_pipeline_status
-
+from scrapeText import getTextAndTitles
 from dotenv import load_dotenv
 # ALWAYS RUN THIS FROM SERVER, NOT FROM THE NASCASACLightRAG DIR
 load_dotenv(dotenv_path=".env", override=False)
-WORKING_DIR = "./nasaRag"
+WORKING_DIR = "./nasaRagSmall"
 
 
 def configure_logging():
@@ -87,17 +87,18 @@ async def initialize_rag():
         llm_model_func=ollama_model_complete,
         llm_model_name=os.getenv("LLM_MODEL", "qwen2NASA:latest"),
         summary_max_tokens=8192,
+        max_parallel_insert=8,
         llm_model_kwargs={
             "host": os.getenv("LLM_BINDING_HOST", "http://localhost:11434"),
             "options": {"num_ctx": 8192},
-            "timeout": int(os.getenv("TIMEOUT", "300")),
+            "timeout": int(os.getenv("TIMEOUT", "600")),
         },
         embedding_func=EmbeddingFunc(
-            embedding_dim=int(os.getenv("EMBEDDING_DIM", "1024")),
+            embedding_dim=int(os.getenv("EMBEDDING_DIM", "384")),
             max_token_size=int(os.getenv("MAX_EMBED_TOKENS", "8192")),
             func=lambda texts: ollama_embed(
                 texts,
-                embed_model=os.getenv("EMBEDDING_MODEL", "bge-m3:latest"),
+                embed_model=os.getenv("EMBEDDING_MODEL", "qllama/bge-small-en-v1.5:latest"),
                 host=os.getenv("EMBEDDING_BINDING_HOST", "http://localhost:11434"),
             ),
         ),
@@ -114,7 +115,9 @@ class lightRag:
         self.papersPath = "./nasaPapers"
         self.logger = logger
         
-        # Clear old data files
+    # THE FORBIDDEN FUNCTION
+    '''
+    def deleteyPetey(self):
         files_to_delete = [
             "graph_chunk_entity_relation.graphml",
             "kv_store_doc_status.json",
@@ -130,7 +133,7 @@ class lightRag:
             if os.path.exists(file_path):
                 os.remove(file_path)
                 print(f"Deleting old file:: {file_path}")
-
+    '''        
     async def populateRag(self):
         test_text = ["This is a test string for embedding."]
         embedding = await self.rag.embedding_func(test_text)
@@ -141,14 +144,9 @@ class lightRag:
         print(f"Test dict: {test_text}")
         print(f"Detected embedding dimension: {embedding_dim}\n\n")
 
-        for fileName in os.listdir(self.papersPath):
-            print(fileName)
-            if not fileName.endswith(".txt"):
-                print("WARNING, NON TEXT FILE DETECTED")
-                continue
-
-            with open(os.path.join(self.papersPath, fileName), "r", encoding="utf-8") as f:
-                await self.rag.ainsert(f.read())                
+        texts, links = getTextAndTitles()
+        print(f"Found {len(texts)} texts to add to RAG")
+        await self.rag.ainsert(texts, file_paths=links)
 
     async def setupRag(self):
         try:
