@@ -89,7 +89,7 @@ async def initialize_rag():
         summary_max_tokens=8192,
         max_parallel_insert=8,
         llm_model_kwargs={
-            "host": os.getenv("LLM_BINDING_HOST", "http://localhost:11434"),
+            "host": os.getenv("OLLAMA_HOST", "http://localhost:11434"),
             "options": {"num_ctx": 32768},
             "timeout": int(os.getenv("TIMEOUT", "600")),
         },
@@ -99,7 +99,7 @@ async def initialize_rag():
             func=lambda texts: ollama_embed(
                 texts,
                 embed_model=os.getenv("EMBEDDING_MODEL", "qllama/bge-small-en-v1.5:latest"),
-                host=os.getenv("EMBEDDING_BINDING_HOST", "http://localhost:11434"),
+                host=os.getenv("OLLAMA_HOST", "http://localhost:11434"),
             ),
         ),
     )
