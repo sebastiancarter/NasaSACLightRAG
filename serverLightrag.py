@@ -90,7 +90,7 @@ async def initialize_rag():
         max_parallel_insert=8,
         llm_model_kwargs={
             "host": os.getenv("LLM_BINDING_HOST", "http://localhost:11434"),
-            "options": {"num_ctx": 10000},
+            "options": {"num_ctx": 32768},
             "timeout": int(os.getenv("TIMEOUT", "600")),
         },
         embedding_func=EmbeddingFunc(

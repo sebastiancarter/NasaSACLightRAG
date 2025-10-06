@@ -2,6 +2,7 @@ import os
 import asyncio
 import serverLightrag
 from flask import Flask, jsonify, request
+import ollama
 
 app = Flask(__name__)
 serverRag = serverLightrag.lightRag()
@@ -19,9 +20,16 @@ def queryAI():
     if userQuery is None:
         return jsonify({"message": "Invalid item data"}), 400
 
-    aiResponse = asyncio.run(serverRag.chat(userQuery))
+    aiPrompt = asyncio.run(serverRag.chat(userQuery)) # this is just getting us the prompt
+    aiResponse = ollama.chat(model="qwen2:latest", messages=[{'role': 'user', 'content': aiPrompt}])
 
-    responseDict = {"message": aiResponse}
+    sourcesSectionAndBelow = aiPrompt.split("Reference Document List (Each entry starts with a [reference_id] that corresponds to entries in the Document Chunks)")[1]
+    sources = sourcesSectionAndBelow.split("---User Query---")[0]
+
+
+
+
+    responseDict = {"content": aiResponse.message.content, "sources": sources}
                     
     return jsonify(responseDict), 200
 

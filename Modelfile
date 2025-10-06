@@ -2,7 +2,7 @@
 # To build a new Modelfile based on this, replace FROM with:
 # FROM qwen2:latest
 
-FROM /Users/sebca/.ollama/models/blobs/sha256-43f7a214e5329f672bb05404cfba1913cbb70fdaa1a17497224e1925046b0ed5
+FROM /Users/mariannemartinez/.ollama/models/blobs/sha256-43f7a214e5329f672bb05404cfba1913cbb70fdaa1a17497224e1925046b0ed5
 TEMPLATE """{{ if .Messages }}
 {{- if or .System .Tools }}<|im_start|>system
 {{ .System }}
