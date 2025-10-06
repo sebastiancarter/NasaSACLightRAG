@@ -11,7 +11,7 @@ from scrapeText import getTextAndTitles
 from dotenv import load_dotenv
 # ALWAYS RUN THIS FROM SERVER, NOT FROM THE NASCASACLightRAG DIR
 load_dotenv(dotenv_path=".env", override=False)
-WORKING_DIR = "./nasaRag"
+WORKING_DIR = "./nasaRagSmall"
 
 
 def configure_logging():
@@ -94,11 +94,11 @@ async def initialize_rag():
             "timeout": int(os.getenv("TIMEOUT", "600")),
         },
         embedding_func=EmbeddingFunc(
-            embedding_dim=int(os.getenv("EMBEDDING_DIM", "768")),
+            embedding_dim=int(os.getenv("EMBEDDING_DIM", "384")),
             max_token_size=int(os.getenv("MAX_EMBED_TOKENS", "8192")),
             func=lambda texts: ollama_embed(
                 texts,
-                embed_model=os.getenv("EMBEDDING_MODEL", "nomic-embed-text:latest"),
+                embed_model=os.getenv("EMBEDDING_MODEL", "qllama/bge-small-en-v1.5:latest"),
                 host=os.getenv("EMBEDDING_BINDING_HOST", "http://localhost:11434"),
             ),
         ),
@@ -112,7 +112,7 @@ async def initialize_rag():
 class lightRag:
     def __init__(self):
         self.rag = None
-        self.papersPath = "./nasaPapers"
+        self.papersPath = "./nasaPapersSmall"
         self.logger = logger
         
     # THE FORBIDDEN FUNCTION
